@@ -1,0 +1,15 @@
+.col-md-9
+  %h1.page-header
+    = t("pages.analyse.overview")
+    %small= t("pages.analyse." + params[:view])
+.col-md-3
+  %br
+  %br
+  %br
+  .btn-group
+  .btn-group
+    %button.btn{disabled: true}
+      View:
+    = link_to 'Bar', overview_path(view: :bar), class: "btn btn-primary #{'active' if params[:view] == 'bar'}"
+    = link_to 'Area', overview_path(view: :area), class: "btn btn-primary #{'active' if params[:view] == 'area'}"
+    = link_to 'Donut', overview_path(view: :donut), class: "btn btn-primary #{'active' if params[:view] == 'donut'}"

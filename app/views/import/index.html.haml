@@ -1,0 +1,17 @@
+%h1.page-header
+  Import from file
+.well  
+  = form_for :upload, {url: :upload} do |f|
+    = f.radio_button :format, :ing
+    = f.label "ING"
+    %br
+    = f.radio_button :format, :sparkasse
+    = f.label "Sparkasse"
+    %br
+    = f.radio_button :format, :dkb_credit
+    = f.label "DKB VISA"
+    %br
+    = f.radio_button :format, :dkb_giro
+    = f.label "DKB Giro"
+    = f.file_field :file
+    = f.submit "Upload"

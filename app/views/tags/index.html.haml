@@ -1,0 +1,27 @@
+.col-sm-10
+  %h1.page-header
+    = @tags.count
+    Tags
+.col-sm-2
+  %br
+  %br
+  %br
+  = link_to 'New Tag', new_tag_path, class: "btn btn-primary"
+
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Name
+      %th Expenses
+      %th Amount
+      %th
+
+  %tbody
+    - @tags.each do |tag|
+      %tr
+        %td= link_to tag.name, tag
+        %td= tag.expenses.count
+        %td= number_to_currency tag.expenses.map{|e| e.amount}.sum
+        %td
+          = link_to 'Edit', edit_tag_path(tag), class: "btn btn-xs btn-warning"
+          = link_to 'Destroy', tag, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: "btn btn-xs btn-danger"

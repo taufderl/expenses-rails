@@ -1,0 +1,76 @@
+.col-md-10
+  %h1.page-header
+    Expenses this Month
+.col-md-2
+  %br
+  %br
+  %br
+  .btn-group
+    - if params[:view] == 'pie'
+      = link_to "Donut", dashboard_path(view: "donut"), class: "btn btn-primary"
+    - if params[:view] == 'donut'
+      = link_to "Pie", dashboard_path(view: "pie"), class: "btn btn-primary" 
+
+.col-md-4    
+  %table.table.table-condensed.table-hover
+    %thead
+      %tr
+        %th Name
+        %th Expenses
+        %th Amount
+        %th Average
+    %tbody
+      - @categories.each do |c|
+            
+        %tr
+          %td= link_to c.name, category_path(c.category_id)
+          %td= c.expense_count
+          %td= number_to_currency c.total_amount
+          %td= number_to_currency @averages[c.category_id]
+
+    %thead
+      %tr
+        %td
+        %td
+        %td
+          %b= number_to_currency @total_amount
+        %td
+          = number_to_currency @averages.map{|k,v| v}.sum
+.col-md-8
+  #expenses_this_month
+  :javascript
+    $(function () {
+      $('#expenses_this_month').highcharts({
+          chart: {
+              type: 'pie',
+              options3d: {
+                  enabled: true,
+                  alpha: 45,
+                  beta: 0
+              }
+          },
+          title: {
+              text: ''
+          },
+          tooltip: {
+              pointFormat: 'Expenses: <b>{point.y:.2f} Euro</b>'
+          },
+          plotOptions: {
+              pie: {
+                  allowPointSelect: true,
+                  cursor: 'pointer',
+                  depth: 35,
+                  dataLabels: {
+                      enabled: true,
+                      format: '{point.name}'
+                  }
+              }
+          },
+          series: [{
+              type: 'pie',
+              name: 'Browser share',
+              data: #{@pie_data.to_json}
+          }]
+      });
+    });
+  

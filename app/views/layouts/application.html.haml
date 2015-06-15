@@ -1,0 +1,102 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    %title= t('page.title')
+    = stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true
+    = javascript_include_tag 'application', 'data-turbolinks-track' => true
+    = csrf_meta_tags
+    = favicon_link_tag 'favicon.png', type: 'image/png'
+
+  %body
+    %nav.navbar.navbar-static-top.navbar-inverse.navbar-collapse{:role => "navigation"}
+      .navbar-header
+        %button.navbar-toggle{"data-target" => "#navbar-main", "data-toggle" => "collapse", :type => "button"}
+          %span.sr-only Toggle navigation
+          %span.icon-bar
+          %span.icon-bar
+          %span.icon-bar
+        = link_to t('page.title'), dashboard_path, html_options = {class: "navbar-brand #{'active' if params[:controller] == 'dashboard'}"}
+      #navbar-main.collapse.navbar-collapse
+        %ul.nav.navbar-nav
+          %li{:class => "#{'active' if params[:controller] == 'dashboard'}"}= link_to t('links.dashboard'), dashboard_path
+          %li{:class => "dropdown #{'active' if ['analyse'].include? params[:controller]}"}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+              = t('pages.analyse.title')
+              %b.caret
+            %ul.dropdown-menu
+              %li= link_to t('pages.analyse.title'), analyse_path
+              %li= link_to t('pages.analyse.bar'), '/analyse/overview?view=bar'
+              %li= link_to t('pages.analyse.area'), '/analyse/overview?view=area'
+              %li= link_to t('pages.analyse.donut'), '/analyse/overview?view=donut'
+          %li{:class => "dropdown #{'active' if ['expenses'].include? params[:controller]}"}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+              = t('pages.expenses.title')
+              %b.caret
+            %ul.dropdown-menu
+              %li= link_to t('pages.expenses.all'), :expenses
+              %li= link_to t('pages.expenses.duplicates'), :expenses_duplicates
+              %li= link_to t('pages.expenses.new'), :new_expense
+          %li{:class => "dropdown #{'active' if ['categories'].include? params[:controller]}"}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+              = t('pages.categories.title')
+              %b.caret
+            %ul.dropdown-menu
+              %li= link_to t('pages.categories.all'), :categories
+              %li.divider
+              - Category.all.each do |c|
+                %li= link_to c.name, c
+          
+          %li{:class => "dropdown #{'active' if ['tags'].include? params[:controller]}"}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+              = t('pages.tags.title')
+              %b.caret
+            %ul.dropdown-menu
+              %li= link_to t('pages.tags.all'), :tags
+              %li.divider
+              - Tag.last(10).each do |t|
+                %li= link_to t.name, t
+          
+          %li{:class => "dropdown #{'active' if ['import'].include? params[:controller]}"}
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+              = t('pages.more.title')
+              %b.caret
+            %ul.dropdown-menu
+              %li= link_to t('controller.import'), :import
+              
+        
+        / NAVBAR
+        %ul.nav.navbar-nav.navbar-right
+          - if session[:user]
+            %li.dropdown
+              %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+                = session[:user]
+                %b.caret
+              %ul.dropdown-menu
+              /  - User.all.each do |u|
+              /    %li= link_to u.name, select_user_path(user: u.name), method: :post
+          - else
+            %li{:class => "dropdown #{'active' if params[:controller] == 'users'}"}
+              %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+                = t('pages.please_select_user')
+                %b.caret
+              %ul.dropdown-menu
+              /  - User.all.each do |u|
+              /    %li= link_to u.name, select_user_path(user: u.name), method: :post
+
+                    
+        / /.nav-collapse
+    .container
+      .row
+        =render partial: 'notice'
+      .row
+        .col-md-12
+          = yield
+      / /row
+    / /container
+    /%footer
+    /  %div
+    /    %p.copyright.pull-right
+    /      © Tim auf der Landwehr 2015 -
+    /      %a{:href => "http://taufderl.de"} taufderl.de
+

@@ -1,0 +1,17 @@
+.col-sm-9
+  %h1.page-header
+    = image_tag 'tag.png', size: "50x50" 
+    = @tag.name
+    %small
+      = @tag.expenses.count
+      Expenses
+.col-sm-3
+  %br
+  %br
+  %br
+  .btn-group
+    = link_to 'Table', tag_path(@tag, view: :table), class: "btn btn-primary #{'active' if params[:view] == 'table'}"
+    = link_to 'Chart', tag_path(@tag, view: :chart), class: "btn btn-primary #{'active' if params[:view] == 'chart'}"
+
+    = link_to 'Edit', edit_tag_path(@tag), class: "btn btn-warning"
+    = link_to 'Export', "#", class: "btn btn-info"

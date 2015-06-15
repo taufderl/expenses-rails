@@ -1,0 +1,11 @@
+.col-sm-10
+  %h1.page-header
+    = @expenses.count
+    Expenses
+.col-sm-2
+  %br
+  %br
+  %br
+  = link_to 'New Expense', new_expense_path, class: "btn btn-primary"
+
+= render partial: 'expenses_table'

@@ -1,0 +1,31 @@
+.col-sm-10
+  %h1.page-header
+    = @categories.count
+    Categories
+    %small
+      = @subcategories.count
+      Subcategories
+.col-sm-2
+  %br
+  %br
+  %br
+  = link_to 'New Category', new_category_path, class: "btn btn-primary"
+
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th Name
+      %th Subcategories
+      %th Expenses
+      %th
+
+  %tbody
+    - @categories.each do |category|
+      %tr
+        %td= link_to category.name, category
+        %td
+          = category.subcategories.map {|s| link_to s.name, s}.join(", ").html_safe
+        %td= category.expenses.count
+        %td
+          = link_to 'Edit', edit_category_path(category), class: "btn btn-xs btn-warning"
+          = link_to 'Destroy', category, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: "btn btn-xs btn-danger"

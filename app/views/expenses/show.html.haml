@@ -1,0 +1,23 @@
+%p#notice= notice
+
+%p
+  %b To:
+  = @expense.to
+%p
+  %b Note:
+  = @expense.note
+%p
+  %b Category:
+  = link_to @expense.category.name, @expense.category
+  
+%p
+  %b Subcategory:
+  - if @expense.subcategory
+    = link_to @expense.subcategory.name, @expense.subcategory
+%p
+  %b Date:
+  = @expense.date
+
+= link_to 'Edit', edit_expense_path(@expense)
+\|
+= link_to 'Back', expenses_path

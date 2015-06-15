@@ -1,0 +1,18 @@
+.col-sm-9
+  %h1.page-header
+    = image_tag 'category.png', size: "50x50"  
+    = @category.name
+    %small= @category.subcategory_list
+.col-sm-3.well
+  .btn-group
+    %button.btn{disabled: true}
+      View:
+    = link_to 'Table', category_path(@category, view: :table), class: "btn btn-primary #{'active' if params[:view] == 'table'}"
+    = link_to 'Chart', category_path(@category, view: :chart), class: "btn btn-primary #{'active' if params[:view] == 'chart'}"
+  %br
+  %br
+  .btn-group
+    %button.btn{disabled: true}
+      Actions:
+    = link_to 'Edit', edit_category_path(@category), class: "btn btn-warning"
+    = link_to 'Export', "#", class: "btn btn-info"

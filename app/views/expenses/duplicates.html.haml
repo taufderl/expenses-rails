@@ -1,0 +1,67 @@
+.col-sm-10
+  %h1.page-header
+    = @duplicates.count
+    Possible Duplicates
+.col-sm-2
+  %br
+  %br
+  %br
+  = link_to 'Export', "#", class: "btn btn-info"
+
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th
+      %th
+      %th Date
+      %th To
+      %th Note
+      %th Category
+      %th Subcategory
+      %th Tags
+      %th Amount
+      %th
+  %tbody
+    - @duplicates.each do |e1,e2|
+      %tr
+        %td
+          = source_image e1.source
+          %br
+          = source_image e2.source
+        %td 
+          =e1.id
+          %br
+          =e2.id
+        %td= e1.date
+        %td
+          = e1.to
+          %br
+          = e2.to
+        %td
+          = e1.note
+          %br
+          = e2.note
+        %td
+          = link_to e1.category.name, e1.category
+          %br
+          = link_to e2.category.name, e2.category
+        %td
+          - if e1.subcategory
+            = link_to e1.subcategory.name, e1.subcategory
+          %br
+          - if e2.subcategory
+            = link_to e2.subcategory.name, e2.subcategory
+        %td
+          = e1.tags.map {|t| link_to t.name, t}.join(", ").html_safe
+          %br
+          = e2.tags.map {|t| link_to t.name, t}.join(", ").html_safe
+        %td= number_to_currency e1.amount
+        %td
+          = link_to 'Edit', edit_expense_path(e1), class: 'btn btn-xs btn-warning'
+          = link_to 'Destroy', e1, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: 'btn btn-xs btn-danger'
+          = link_to 'Merge', merge_expense_path(e1, e2), class: 'btn btn-sm btn-info'
+          = link_to 'Edit', edit_expense_path(e2), class: 'btn btn-xs btn-warning'
+          = link_to 'Destroy', e2, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: 'btn btn-xs btn-danger'
+
+
+

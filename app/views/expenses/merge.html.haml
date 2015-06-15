@@ -1,0 +1,123 @@
+.col-md-10
+  %h1.page-header Merging expenses
+.col-md-2
+  %br
+  %br
+  %br
+  = link_to "Back to duplicates", :expenses_duplicates, class: "btn btn-primary"
+
+
+.col-sm-1
+.col-sm-4
+  - if @e1
+    = form_for @e1, html: {class: 'form-horizontal'} do |f|
+      - if @e1.errors.any?
+        #error_explanation
+          %h2= "#{pluralize(@expense.errors.count, "error")} prohibited this expense from being saved:"
+          %ul
+            - @e1.errors.full_messages.each do |msg|
+              %li= msg
+      .field.form-group
+        .col-sm-12
+          = f.label :date
+          %br
+          = f.date_select :date, {disabled: true}, {class: 'form-control date-select'}
+      .field.form-group
+        .col-sm-12
+          = f.label :amount
+          = f.number_field :amount, disabled: true, class: 'form-control'
+      .field.form-group
+        .col-sm-12
+          = f.label :to
+          = f.text_field :to, class: 'form-control'
+      .field.form-group
+        .col-sm-12
+          = f.label :note
+          = f.text_field :note, class: 'form-control'
+      .field.form-group
+        .col-sm-6
+          = f.label :category
+          = f.collection_select :category_id, Category.all.order(:name), :id, :name, {}, {class: 'form-control', id: "expense_category_id_1"}
+        :javascript
+          $("#expense_category_id_1").click(function(){
+            var url = '/subcategories.json?category_id=' + $(this).val()
+            $("#expense_subcategory_id_1").children('option:not(:first)').remove();
+            $.get(url, function(data) {
+              $.each(data, function(index, category) {
+                console.log(index, category) 
+                $('#expense_subcategory_id_1')
+                     .append($("<option></option>")
+                     .attr("value",category.id)
+                     .text(category.name));
+              });
+            });
+          });
+        .col-sm-6
+          = f.label :subcategory
+          = f.collection_select :subcategory_id, Subcategory.where(category: @e1.category).order(:name), :id, :name, {include_blank: true}, {class: 'form-control', id: "expense_subcategory_id_1"}
+      .field.form-group
+        .col-sm-12
+          = f.label :tags
+          = f.text_field :tag_list, class: 'form-control'
+      .actions
+        = f.submit 'Save', class: 'btn btn-success'
+        = link_to 'Destroy', @e1, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: 'btn btn-danger'
+
+
+.col-sm-2
+
+
+.col-sm-4
+  -if @e2
+    = form_for @e2, html: {class: 'form-horizontal'} do |f|
+      - if @e2.errors.any?
+        #error_explanation
+          %h2= "#{pluralize(@expense.errors.count, "error")} prohibited this expense from being saved:"
+          %ul
+            - @e2.errors.full_messages.each do |msg|
+              %li= msg
+      .field.form-group
+        .col-sm-12
+          = f.label :date
+          %br
+          = f.date_select :date, {disabled: true}, {class: 'form-control date-select'}
+      .field.form-group
+        .col-sm-12
+          = f.label :amount
+          = f.number_field :amount, disabled: true, class: 'form-control'
+      .field.form-group
+        .col-sm-12
+          = f.label :to
+          = f.text_field :to, class: 'form-control'
+      .field.form-group
+        .col-sm-12
+          = f.label :note
+          = f.text_field :note, class: 'form-control'
+      .field.form-group
+        .col-sm-6
+          = f.label :category
+          = f.collection_select :category_id, Category.all.order(:name), :id, :name, {}, {class: 'form-control', id: "expense_category_id_2"}
+        :javascript
+          $("#expense_category_id_2").click(function(){
+            var url = '/subcategories.json?category_id=' + $(this).val()
+            $("#expense_subcategory_id_2").children('option:not(:first)').remove();
+            $.get(url, function(data) {
+              $.each(data, function(index, category) {
+                console.log(index, category) 
+                $('#expense_subcategory_id_2')
+                     .append($("<option></option>")
+                     .attr("value",category.id)
+                     .text(category.name));
+              });
+            });
+          });
+        .col-sm-6
+          = f.label :subcategory
+          = f.collection_select :subcategory_id, Subcategory.where(category: @e2.category).order(:name), :id, :name, {include_blank: true}, {class: 'form-control', id: "expense_subcategory_id_2"}
+      .field.form-group
+        .col-sm-12
+          = f.label :tags
+          = f.text_field :tag_list, class: 'form-control'
+      .actions
+        = f.submit 'Save', class: 'btn btn-success'
+        = link_to 'Destroy', @e2, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: 'btn btn-danger'

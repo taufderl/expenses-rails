@@ -1,0 +1,17 @@
+.col-sm-9
+  %h1.page-header
+    = image_tag 'subcategory.png', size: "50x50" 
+    = @subcategory.name
+    %small
+      Category:
+      = @subcategory.category.name
+.col-sm-3
+  %br
+  %br
+  %br
+  .btn-group
+    = link_to 'To Category', category_path(@subcategory.category), class: "btn btn-primary"
+    = link_to 'Edit', edit_category_path(@subcategory.category), class: "btn btn-warning"
+    = link_to 'Export', "#", class: "btn btn-info"
+
+= render partial: 'expenses_table'

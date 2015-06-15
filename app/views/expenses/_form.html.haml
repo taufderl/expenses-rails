@@ -1,0 +1,52 @@
+.col-sm-4
+  = form_for @expense, html: {class: 'form-horizontal'} do |f|
+    - if @expense.errors.any?
+      #error_explanation
+        %h2= "#{pluralize(@expense.errors.count, "error")} prohibited this expense from being saved:"
+        %ul
+          - @expense.errors.full_messages.each do |msg|
+            %li= msg
+    .field.form-group
+      .col-sm-12
+        = f.label :date
+        %br
+        = f.date_select :date, {}, {class: 'form-control date-select'}
+    .field.form-group
+      .col-sm-12
+        = f.label :amount
+        = f.number_field :amount, class: 'text_field form-control', step: 0.01
+    .field.form-group
+      .col-sm-12
+        = f.label :to
+        = f.text_field :to, class: 'form-control'
+    .field.form-group
+      .col-sm-12
+        = f.label :note
+        = f.text_field :note, class: 'form-control'
+    .field.form-group
+      .col-sm-6
+        = f.label :category
+        = f.collection_select :category_id, Category.all.order(:name), :id, :name, {}, {class: 'form-control'}
+      :javascript
+        $("#expense_category_id").click(function(){
+          var url = '/subcategories.json?category_id=' + $(this).val()
+          $("#expense_subcategory_id").children('option:not(:first)').remove();
+          $.get(url, function(data) {
+            $.each(data, function(index, category) {
+              console.log(index, category) 
+              $('#expense_subcategory_id')
+                   .append($("<option></option>")
+                   .attr("value",category.id)
+                   .text(category.name));
+            });
+          });
+        });
+      .col-sm-6
+        = f.label :subcategory
+        = f.collection_select :subcategory_id, Subcategory.where(category: @expense.category).order(:name), :id, :name, {include_blank: true}, {class: 'form-control'}
+    .field.form-group
+      .col-sm-12
+        = f.label :tags
+        = f.text_field :tag_list, class: 'form-control'
+    .actions
+      = f.submit 'Save', class: 'btn btn-success'

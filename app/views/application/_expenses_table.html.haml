@@ -1,0 +1,47 @@
+%table.table.table-condensed.table-hover
+  %thead
+    %tr
+      %th
+      %th= sort_link @q, :date, {controller: params[:controller], action: params[:action]}
+      %th= sort_link @q, :to, {controller: params[:controller], action: params[:action]}
+      %th= sort_link @q, :note, {controller: params[:controller], action: params[:action]}
+      %th= sort_link @q, :category_name, "Category", {controller: params[:controller], action: params[:action]}
+      %th= sort_link @q, :subcategory_name, "Subcategory", {controller: params[:controller], action: params[:action]}
+      %th Tags
+      %th= sort_link @q, :amount, {controller: params[:controller], action: params[:action]}
+      %th
+    %tr
+      = search_form_for @q, url: {controller: params[:controller], action: params[:action]}, class: "form-inline" do |f|
+        .form-group
+          %th
+          %th= f.search_field :to_cont, class: "form-control input-sm"
+          %th= f.search_field :to_cont, class: "form-control input-sm"
+          %th= f.search_field :note_cont, class: "form-control input-sm"
+          %th= f.search_field :category_name_cont, class: "form-control input-sm"
+          %th= f.search_field :subcategory_name_cont, class: "form-control input-sm"
+          %th= f.search_field :tags_name, class: "form-control input-sm"
+          %th
+        %th= f.submit "Filter", class: "btn btn-sm btn-success"
+        
+  %tbody
+    - @expenses.each do |expense|
+      %tr
+        %td= source_image expense.source
+        %td.nowrap{style: "min-width: 80px;"}
+          = expense.date
+        %td= expense.to
+        %td= expense.note
+        %td
+          - if expense.category
+            = link_to expense.category.name, expense.category
+        %td
+          - if expense.subcategory
+            = link_to expense.subcategory.name, expense.subcategory
+        %td= expense.tags.map {|t| link_to t.name, t}.join(", ").html_safe
+        %td= number_to_currency expense.amount
+        %td.btn-group.nowrap
+          = link_to 'Edit', edit_expense_path(expense), class: 'btn btn-xs btn-warning'
+          = link_to 'Destroy', expense, :method => :delete, :data => { :confirm => 'Are you sure?' }, class: 'btn btn-xs btn-danger'
+
+
+
