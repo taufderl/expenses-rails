@@ -1,4 +1,6 @@
 class ImportController < ApplicationController
+  before_action :authenticate_user!
+
   def index
   end
   
@@ -26,7 +28,7 @@ class ImportController < ApplicationController
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";")
     @content = @csv.to_a.map {|row| row.to_hash }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
-    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"))
+    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
     @create = true
     @debug = []
     @content.each do |row|
@@ -58,7 +60,8 @@ class ImportController < ApplicationController
               tag_list: tag,
               category: category,
               subcategory: subcategory,
-              source: :dkb_credit
+              source: :dkb_credit,
+              user: current_user
           )
         rescue => err
           @debug.append({row: row, err: err})
@@ -75,7 +78,7 @@ def parse_dkb_giro_file
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";", encoding: 'ISO-8859-1')
     @content = @csv.to_a.map {|row| row.to_hash }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
-    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"))
+    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
     @create = true
     @debug = []
     @content.each do |row|
@@ -102,7 +105,8 @@ def parse_dkb_giro_file
               tag_list: tag,
               category: category,
               subcategory: subcategory,
-              source: :dkb_giro
+              source: :dkb_giro,
+              user: current_user
           )
         rescue => err
           @debug.append({row: row, err: err})
@@ -119,7 +123,7 @@ def parse_dkb_giro_file
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";", encoding: "ISO-8859-1")
     @content = @csv.to_a.map {|row| row.to_hash }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
-    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"))
+    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
     @create = true
     @debug = []
     @content.each do |row|
@@ -163,7 +167,8 @@ def parse_dkb_giro_file
               tag_list: tag,
               category: category,
               subcategory: subcategory,
-              source: :sparkasse
+              source: :sparkasse,
+              user: current_user
           )
         rescue => err
           @debug.append({row: row, err: err})
@@ -177,7 +182,7 @@ def parse_dkb_giro_file
     @csv = CSV.new(@file.read, headers: true)
     @content = @csv.to_a.map {|row| row.to_hash }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
-    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"))
+    import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
     @create = true
     @debug = []
     @content.each do |row|
@@ -237,7 +242,8 @@ def parse_dkb_giro_file
               category: category,
               subcategory: subcategory,
               tag_list: tag,
-              source: :ing
+              source: :ing,
+              user: current_user
           )
         rescue => err
           @debug.append({row: row, err: err})
@@ -257,14 +263,14 @@ def parse_dkb_giro_file
     @print = []
     @entries.each do |entry|
       begin
-        category = Category.find_by(name: entry[:category])
+        category = Category.where(user: current_user).find_by(name: entry[:category])
         if not category
-          c = Category.create(name: entry[:category])
+          c = Category.create(name: entry[:category], user: current_user)
         else
           c = category
         end
         entry[:category] = c
-        Expense.create(entry)
+        Expense.create(entry.merge({user: current_user}))
       rescue => error
         @print = @print + [entry, error]
       end

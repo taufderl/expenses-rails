@@ -1,10 +1,11 @@
 class TagsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_tag, only: [:show, :edit, :update, :destroy]
 
   # GET /tags
   # GET /tags.json
   def index
-    @tags = Tag.all
+    @tags = Tag.where(user: current_user)
   end
 
   # GET /tags/1
@@ -14,7 +15,7 @@ class TagsController < ApplicationController
     case params[:view]
     when 'chart'
       @expenses = @tag.expenses
-      @categories = Category.all.order(:name)
+      @categories = Category.where(user: current_user).order(:name)
       @categories_names = @categories.map{ |c| c.name }
       @data = [] 
       @categories.each do |c|
@@ -34,7 +35,7 @@ class TagsController < ApplicationController
       end
       render :show_chart
     when 'table'
-      @q = Expense.joins(:tags).where('tags.id' => @tag).ransack(params[:q])
+      @q = Expense.where(user: current_user).joins(:tags).where('tags.id' => @tag).ransack(params[:q])
       @expenses = @q.result(distinct: true).includes(:category, :subcategory, :tags).order(:date)
       render :show_table
     end
@@ -52,7 +53,7 @@ class TagsController < ApplicationController
   # POST /tags
   # POST /tags.json
   def create
-    @tag = Tag.new(tag_params)
+    @tag = Tag.new(tag_params.merge({user: current_user}))
 
     respond_to do |format|
       if @tag.save
@@ -92,7 +93,7 @@ class TagsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_tag
-      @tag = Tag.find(params[:id])
+      @tag = Tag.where(user: current_user).find(params[:id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
