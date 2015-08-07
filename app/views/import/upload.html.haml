@@ -1,5 +1,36 @@
-%h1 Import#upload
+%h1.page-header
+  Uploaded
+  = @file.original_filename
 .well
-  =@csv.to_a
+  %h3
+    Imported
+    = @valid.length
+    Expenses
+  - if @valid.length > 0
+    %table.table.table-condensed
+      %tr
+        %th Date
+        %th Note
 
-=@content
+      - @invalid.each do |e|
+        %tr
+          %td= e.date
+          %td= e.note
+
+.well
+  %h3
+    Skipped
+    = @invalid.length
+    Expenses
+  - if @invalid.length > 0
+    %table.table.table-condensed
+      %tr
+        %th Date
+        %th Note
+        %th Error
+
+      - @invalid.each do |e|
+        %tr
+          %td= e.date
+          %td= e.note
+          %td= e.errors.map { |e,v| "#{e}: #{v}"}

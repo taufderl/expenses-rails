@@ -1,7 +1,8 @@
 class Category < ActiveRecord::Base
   has_many :expenses
   has_many :subcategories
-  validates :name, presence: true, uniqueness: true
+  validates :name, presence: true
+  validates_uniqueness_of :name, scope: :user
   belongs_to :user
   
   def average

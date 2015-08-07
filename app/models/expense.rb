@@ -5,6 +5,7 @@ class Expense < ActiveRecord::Base
   has_and_belongs_to_many :tags
   validates :to, presence: true
   validates :category, presence: true
+  validates_uniqueness_of :md5
   
   def tag_list
     self.tags.map {|s| s.name}.join(", ")

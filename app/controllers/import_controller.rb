@@ -26,33 +26,34 @@ class ImportController < ApplicationController
     @filecontent = @file.read
     @filecontent.force_encoding('ISO-8859-1')
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";")
-    @content = @csv.to_a.map {|row| row.to_hash }
+    @content = @csv.to_a.map {|row| row.to_hash.merge({md5: (Digest::MD5.hexdigest row.to_s)}) }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
     import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
-    @create = true
-    @debug = []
+    @errors = []
+    @expenses = []
     @content.each do |row|
+      create = true
       category = import_category
       subcategory = nil
       if row["Umsatzbeschreibung"] == "Abgeltungsteuer"
-        category = Category.find_by(name: "Contracts")
-        subcategory = Subcategory.find_by(category: category, name: "Bank Fees")
+        category = Category.find_or_create_by(user: current_user, name: "Contracts")
+        subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Bank Fees")
       elsif row["Umsatzbeschreibung"].include? "NETFLIX"
-        category = Category.find_by(name: "Contracts")
-        subcategory = Subcategory.find_by(category: category, name: "Netflix")
+        category = Category.find_or_create_by(user: current_user, name: "Contracts")
+        subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Netflix")
       elsif row["Umsatzbeschreibung"].include? "DB BAHN"
-        category = Category.find_by(name: "Transport")
-        subcategory = Subcategory.find_by(category: category, name: "Train")
+        category = Category.find_or_create_by(user: current_user, name: "Transport")
+        subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Train")
       end 
       if row["Betrag (EUR)"][0] == '-'
         #if Auszahlung
       else
         #else it is a Einzahlung, irgnore
-        @create = false
+        create = false
       end
-      if @create
+      if create
         begin
-          e = Expense.create(
+          @expenses.append(Expense.create(
               amount: row["Betrag (EUR)"].sub(",", ".").sub("-", ""),
               to: row["Umsatzbeschreibung"],
               date: Date.strptime(row["Belegdatum"],"%d.%m.%Y"),
@@ -61,43 +62,45 @@ class ImportController < ApplicationController
               category: category,
               subcategory: subcategory,
               source: :dkb_credit,
-              user: current_user
-          )
+              user: current_user,
+              md5: row[:md5]
+          ))
         rescue => err
-          @debug.append({row: row, err: err})
+          @errors.append({row: row, err: err})
         end
       end
-      @create = true
-
     end
+    @valid = @expenses.select {|e| e.valid? }
+    @invalid = @expenses.select {|e| not e.valid? }
   end
 
 def parse_dkb_giro_file
     @filecontent = @file.read
     @filecontent.force_encoding('ISO-8859-1')
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";", encoding: 'ISO-8859-1')
-    @content = @csv.to_a.map {|row| row.to_hash }
+    @content = @csv.to_a.map {|row| row.to_hash.merge({md5: (Digest::MD5.hexdigest row.to_s)}) }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
     import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
-    @create = true
-    @debug = []
+    @errors = []
+    @expenses = []
     @content.each do |row|
+      create = true
       category = import_category
       subcategory = nil
       if row["Auftraggeber / Begunstigter"].include? "VERSICHERUNG"
-        category = Category.find_by(name: "Insurance")
+        category = Category.find_or_create_by(user: current_user, name: "Insurance")
       end 
       if row["Betrag (EUR)"][0] == '-'
         #else it is a Einzahlung
       else
-        @create = false
+        create = false
       end
       if row["Verwendungszweck"].include? "TIM AUF DER LANDWEHR"
-        @create = false
+        create = false
       end
-      if @create
+      if create
         begin
-          e = Expense.create(
+          @expenses.append(Expense.create(
               amount: row["Betrag (EUR)"].sub(",", ".").sub("-", ""),
               to: row["Auftraggeber / Begunstigter"],
               date: Date.strptime(row["Buchungstag"],"%d.%m.%Y"),
@@ -106,14 +109,16 @@ def parse_dkb_giro_file
               category: category,
               subcategory: subcategory,
               source: :dkb_giro,
-              user: current_user
-          )
+              user: current_user,
+              md5: row[:md5]
+          ))
         rescue => err
-          @debug.append({row: row, err: err})
+          @errors.append({row: row, err: err})
         end
       end
-      @create = true
     end
+    @valid = @expenses.select {|e| e.valid? }
+    @invalid = @expenses.select {|e| not e.valid? }
   end
 
   
@@ -121,36 +126,37 @@ def parse_dkb_giro_file
     @filecontent = @file.read
     @filecontent.force_encoding('ISO-8859-1')
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";", encoding: "ISO-8859-1")
-    @content = @csv.to_a.map {|row| row.to_hash }
+    @content = @csv.to_a.map {|row| row.to_hash.merge({md5: (Digest::MD5.hexdigest row.to_s)}) }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
     import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
-    @create = true
-    @debug = []
+    @errors = []
+    @expenses = []
     @content.each do |row|
+      create = true
       category = import_category
       subcategory = nil
       case row["Buchungstext"]
       when "FOLGELASTSCHRIFT"
       when "EIGENE KREDITKARTENABRECHN."
       when "ENTGELTABSCHLUSS"
-        category = Category.find_by_name("Contracts")
-        subcategory = Subcategory.find_by(category: category, name: "Bank Fees")
+        category = Category.find_or_create_by(user: current_user, name: "Contracts")
+        subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Bank Fees")
       when "ERSTLASTSCHRIFT"
       when "LADEVORGANG PREPAID - KARTE"
       when "LASTSCHRIFT"
       when "ONLINE-UEBERWEISUNG"
       when "SONSTIGER EINZUG"
       else
-        @create = false
+        create = false
       end
       if row["Beguenstigter/Zahlungspflichtiger"] == "WERTGARANTIE AG"
-        category = Category.find_by_name("Insurance")
+        category = Category.find_or_create_by(user: current_user, name: "Insurance")
       end
       if row["Beguenstigter/Zahlungspflichtiger"].include? "HB-HANDY-LADEN"
-        category = Category.find_by_name("Contracts")
-        subcategory = Subcategory.find_by(category: category, name: "Mobile Phone")
+        category = Category.find_or_create_by(user: current_user, name: "Contracts")
+        subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Mobile Phone")
       end
-      if @create
+      if create
         begin
           row["Beguenstigter/Zahlungspflichtiger"].gsub('\xC3\xB6','ö')
           if row["Valutadatum"] == "29.02.14"
@@ -159,7 +165,7 @@ def parse_dkb_giro_file
             row["Valutadatum"] = "28.02.13"
           end
           
-          e = Expense.create(
+          @expenses.append(Expense.create(
               amount: row["Betrag"].sub(",", ".").sub("-", ""),
               to: row["Beguenstigter/Zahlungspflichtiger"],
               date: Date.strptime(row["Valutadatum"],"%d.%m.%y"),
@@ -168,24 +174,27 @@ def parse_dkb_giro_file
               category: category,
               subcategory: subcategory,
               source: :sparkasse,
-              user: current_user
-          )
+              user: current_user,
+              md5: row[:md5]
+          ))
         rescue => err
-          @debug.append({row: row, err: err})
+          @errors.append({row: row, err: err})
         end
       end
-      @create = true
     end
+    @valid = @expenses.select {|e| e.valid? }
+    @invalid = @expenses.select {|e| not e.valid? }
   end
   
   def parse_ing_file
     @csv = CSV.new(@file.read, headers: true)
-    @content = @csv.to_a.map {|row| row.to_hash }
+    @content = @csv.to_a.map {|row| row.to_hash.merge({md5: (Digest::MD5.hexdigest row.to_s)}) }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
     import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"), user: current_user)
-    @create = true
-    @debug = []
+    @errors = []
+    @expenses = []
     @content.each do |row|
+      create = true
       category = import_category
       subcategory = nil
       case row["MutatieSoort"]
@@ -200,19 +209,19 @@ def parse_dkb_giro_file
           note = row["Mededelingen"]
         end
         if ['Jumbo', 'ALBERT', 'PLUS', 'AH to go'].any? { |str| row["Naam / Omschrijving"].include? str}
-          category = Category.find_by_name("Groceries")
+          category = Category.find_or_create_by(user: current_user, name: "Groceries")
         elsif ['Billy', 'Subway', 'TACO'].any? { |str| row["Naam / Omschrijving"].include? str}
-          category = Category.find_by_name("Meals")
+          category = Category.find_or_create_by(user: current_user, name: "Meals")
         end
       when "Incasso"
         date = Date.strptime(row["Datum"],"%Y%m%d")
         to = row["Naam / Omschrijving"]
         note = row["Mededelingen"]
         if ['Zorgverzekeraar', 'NATIONALE NEDERLANDEN'].any? { |str| row["Naam / Omschrijving"].include? str}
-          category = Category.find_by_name("Insurance")
+          category = Category.find_or_create_by(user: current_user, name: "Insurance")
         elsif ['Simyo'].any? { |str| row["Naam / Omschrijving"].include? str}
-          category = Category.find_by_name("Contracts")
-          subcategory = Subcategory.find_by(category: category, name: "Mobile Phone")
+          category = Category.find_or_create_by(user: current_user, name: "Contracts")
+          subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Mobile Phone")
         end
         
       when "Internetbankieren"
@@ -221,20 +230,20 @@ def parse_dkb_giro_file
           date = row["Datum"]
           note = row["Mededelingen"]
         else
-          @create = false
+          create = false
         end
       when "Diversen"
         to = row["Naam / Omschrijving"]
         date = row["Datum"]
         note = row["Mededelingen"]
-        category = Category.find_by_name("Contracts")
-        subcategory = Subcategory.find_by(category: category, name: "Bank Fees")
+        category = Category.find_or_create_by(user: current_user, name: "Contracts")
+        subcategory = Subcategory.find_or_create_by(user: current_user, category: category, name: "Bank Fees")
       else
-        @create = false
+        create = false
       end
-      if @create
+      if create
         begin
-          e = Expense.create(
+          @expenses.append(Expense.create(
               amount: row["Bedrag (EUR)"].sub(",", "."),
               to: to,
               date: date,
@@ -243,14 +252,16 @@ def parse_dkb_giro_file
               subcategory: subcategory,
               tag_list: tag,
               source: :ing,
-              user: current_user
-          )
+              user: current_user,
+              md5: row[:md5]
+          ))
         rescue => err
-          @debug.append({row: row, err: err})
+          @errors.append({row: row, err: err})
         end
       end
-      @create = true
-    end 
+    end
+    @valid = @expenses.select {|e| e.valid? }
+    @invalid = @expenses.select {|e| not e.valid? }
   end
   
   
@@ -259,22 +270,18 @@ def parse_dkb_giro_file
     @sheet = Roo::Spreadsheet.open(@file)
     
     @entries = @sheet.parse(date: "Datum", to: "Wo", category: "Kategorie", note: "Details", amount: "Preis")
-    
-    @print = []
+    @expenses = []
+    @errors = []
     @entries.each do |entry|
       begin
-        category = Category.where(user: current_user).find_by(name: entry[:category])
-        if not category
-          c = Category.create(name: entry[:category], user: current_user)
-        else
-          c = category
-        end
-        entry[:category] = c
-        Expense.create(entry.merge({user: current_user}))
+        category = Category.find_or_create_by(user: current_user, name: entry[:category])
+        entry[:category] = category
+        @expenses.append(Expense.create(entry.merge({user: current_user})))
       rescue => error
-        @print = @print + [entry, error]
+        @errors.append({row: entry, error: error})
       end
     end
-    @print = @print + [@print.length]
+    @valid = @expenses.select {|e| e.valid? }
+    @invalid = @expenses.select {|e| not e.valid? }
   end
 end
