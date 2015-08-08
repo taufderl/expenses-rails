@@ -4,6 +4,7 @@ class Category < ActiveRecord::Base
   validates :name, presence: true
   validates_uniqueness_of :name, scope: :user
   belongs_to :user
+  default_scope { where( user_id: User.logged_in )}
   
   def average
     monthly_sums = self.expenses.group_by{ |e| e.date.strftime("%Y-%m") }.map{|m,l| l.map{|e|e.amount}.sum.to_f }

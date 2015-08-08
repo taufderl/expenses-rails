@@ -5,7 +5,8 @@ class Expense < ActiveRecord::Base
   has_and_belongs_to_many :tags
   validates :to, presence: true
   validates :category, presence: true
-  validates_uniqueness_of :md5, allow_blank: true
+  validates_uniqueness_of :md5, allow_blank: true, scope: :user_id
+  default_scope { where( user_id: User.logged_in )}
   
   def tag_list
     self.tags.map {|s| s.name}.join(", ")

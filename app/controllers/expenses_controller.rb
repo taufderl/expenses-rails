@@ -5,7 +5,7 @@ class ExpensesController < ApplicationController
   # GET /expenses
   # GET /expenses.json
   def index
-    @q = Expense.where(user: current_user).ransack(params[:q])
+    @q = Expense.ransack(params[:q])
     @expenses = @q.result(distinct: true).includes(:category, :subcategory, :tags).order(:date)
   end
 
@@ -26,7 +26,7 @@ class ExpensesController < ApplicationController
   # POST /expenses
   # POST /expenses.json
   def create
-    @expense = Expense.new(expense_params.merge({user: current_user}))
+    @expense = Expense.new(expense_params)
     @expense.source = :webapp
     respond_to do |format|
       if @expense.save
@@ -65,8 +65,8 @@ class ExpensesController < ApplicationController
 
 
   def duplicates
-    @set1 = Expense.where(user: current_user).includes(:tags, :category, :subcategory).all
-    @set2 = Expense.where(user: current_user).includes(:tags, :category, :subcategory).all
+    @set1 = Expense.includes(:tags, :category, :subcategory).all
+    @set2 = Expense.includes(:tags, :category, :subcategory).all
     
     @duplicates = []
     @set1.each_with_index do |e1, index1|
@@ -87,8 +87,8 @@ class ExpensesController < ApplicationController
   end
   
   def merge
-    @e1 = Expense.where(user: current_user).find_by_id params[:e1]
-    @e2 = Expense.where(user: current_user).find_by_id params[:e2]
+    @e1 = Expense.find_by_id params[:e1]
+    @e2 = Expense.find_by_id params[:e2]
     if not @e1 and @e2
       redirect_to :expenses_duplicates, notice: 'One of the selected expenses does not exist anymore.'
     end
@@ -97,7 +97,7 @@ class ExpensesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_expense
-      @expense = Expense.where(user: current_user).find(params[:id])
+      @expense = Expense.find(params[:id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

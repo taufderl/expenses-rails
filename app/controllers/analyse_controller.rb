@@ -6,8 +6,8 @@ class AnalyseController < ApplicationController
   
   def overview
     if ['area', 'bar'].include? params[:view]
-      @months = Expense.where(user: current_user).map {|e| e.date}.map{ |d| d.strftime("%Y-%m") }.uniq.sort()
-      @categories = Category.where(user: current_user).to_a
+      @months = Expense.map {|e| e.date}.map{ |d| d.strftime("%Y-%m") }.uniq.sort()
+      @categories = Category.to_a
       @expenses_series_per_category = []
       @debug = []
       @categories.each do |c|
@@ -15,7 +15,7 @@ class AnalyseController < ApplicationController
         category[:name] = c.name
         category[:data] = []
         @months.each do |month|
-          expenses = Expense.where(user: current_user).where(category: c).where("strftime('%Y-%m', date) = ?", month)
+          expenses = Expense.where(category: c).where("strftime('%Y-%m', date) = ?", month)
           @debug.append expenses.length
           category[:data].append(expenses.map {|e| e.amount }.sum.to_f)
         end
@@ -27,7 +27,7 @@ class AnalyseController < ApplicationController
         render :overview_bar
       end
     elsif 'donut' == params[:view]
-      @categories = Category.where(user: current_user).order(:name)
+      @categories = Category.order(:name)
       @categories_names = @categories.map{ |c| c.name }
       @data = [] 
       @categories.each do |c|

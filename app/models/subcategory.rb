@@ -5,4 +5,5 @@ class Subcategory < ActiveRecord::Base
   validates :category, presence: true
   validates :name, presence: true
   validates :name, uniqueness: {scope: :category}
+  default_scope { where( user_id: User.logged_in )}
 end

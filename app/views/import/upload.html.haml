@@ -12,7 +12,7 @@
         %th Date
         %th Note
 
-      - @invalid.each do |e|
+      - @valid.each do |e|
         %tr
           %td= e.date
           %td= e.note

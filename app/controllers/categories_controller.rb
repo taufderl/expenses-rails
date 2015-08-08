@@ -6,8 +6,8 @@ class CategoriesController < ApplicationController
   # GET /categories
   # GET /categories.json
   def index
-    @categories = Category.where(user: current_user).includes(:subcategories).order(:name)
-    @subcategories = Subcategory.where(user: current_user)
+    @categories = Category.includes(:subcategories).order(:name)
+    @subcategories = Subcategory.all
   end
 
   # GET /categories/1
@@ -16,7 +16,7 @@ class CategoriesController < ApplicationController
     params[:view] = params[:view] || 'table'
     case params[:view]
     when 'chart'
-      @months = Expense.where(user: current_user).where(category: @category).map {|e| e.date}.map{ |d| d.strftime("%Y-%m") }.uniq.sort()
+      @months = Expense.where.where(category: @category).map {|e| e.date}.map{ |d| d.strftime("%Y-%m") }.uniq.sort()
       @expenses_series_per_subcategory = []
       @category.subcategories.each do |s|
         subcategory = {name: s.name, data: []}
@@ -34,7 +34,7 @@ class CategoriesController < ApplicationController
         @expenses_series_per_subcategory.append subcategory
       render :show_chart
     when 'table'
-      @q = Expense.where(user: current_user).where(category: @category).ransack(params[:q])
+      @q = Expense.where(category: @category).ransack(params[:q])
       @expenses = @q.result(distinct: true).includes(:category, :subcategory, :tags).order(:date)
       render :show_table
     end
@@ -52,7 +52,7 @@ class CategoriesController < ApplicationController
   # POST /categories
   # POST /categories.json
   def create
-    @category = Category.new(category_params.merge({user: current_user}))
+    @category = Category.new(category_params)
 
     respond_to do |format|
       if @category.save
@@ -92,7 +92,7 @@ class CategoriesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_category
-      @category = Category.where(user: current_user).find(params[:id])
+      @category = Category.find(params[:id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

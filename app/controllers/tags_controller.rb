@@ -5,7 +5,7 @@ class TagsController < ApplicationController
   # GET /tags
   # GET /tags.json
   def index
-    @tags = Tag.where(user: current_user)
+    @tags = Tag.all
   end
 
   # GET /tags/1
@@ -15,7 +15,7 @@ class TagsController < ApplicationController
     case params[:view]
     when 'chart'
       @expenses = @tag.expenses
-      @categories = Category.where(user: current_user).order(:name)
+      @categories = Category.order(:name)
       @categories_names = @categories.map{ |c| c.name }
       @data = [] 
       @categories.each do |c|
@@ -35,7 +35,7 @@ class TagsController < ApplicationController
       end
       render :show_chart
     when 'table'
-      @q = Expense.where(user: current_user).joins(:tags).where('tags.id' => @tag).ransack(params[:q])
+      @q = Expense.joins(:tags).where('tags.id' => @tag).ransack(params[:q])
       @expenses = @q.result(distinct: true).includes(:category, :subcategory, :tags).order(:date)
       render :show_table
     end
@@ -53,7 +53,7 @@ class TagsController < ApplicationController
   # POST /tags
   # POST /tags.json
   def create
-    @tag = Tag.new(tag_params.merge({user: current_user}))
+    @tag = Tag.new(tag_params)
 
     respond_to do |format|
       if @tag.save
@@ -93,7 +93,7 @@ class TagsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_tag
-      @tag = Tag.where(user: current_user).find(params[:id])
+      @tag = Tag.find(params[:id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

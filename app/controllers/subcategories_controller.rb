@@ -7,23 +7,23 @@ class SubcategoriesController < ApplicationController
   def index
     params.permit(:category_id)
     if params[:category_id]
-      @subcategories = Subcategory.where(user: current_user).where(category_id: params[:category_id])
+      @subcategories = Subcategory.where(category_id: params[:category_id])
     else
-      @subcategories = Subcategory.where(user: current_user)
+      @subcategories = Subcategory.all
     end
   end
 
   # GET /subcategories/1
   # GET /subcategories/1.json
   def show
-    @q = Expense.where(user: current_user).where(category: @subcategory.category, subcategory: @subcategory).ransack(params[:q])
+    @q = Expense.where(category: @subcategory.category, subcategory: @subcategory).ransack(params[:q])
     @expenses = @q.result(distinct: true).includes(:category, :subcategory, :tags).order(:date)
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_subcategory
-      @subcategory = Subcategory.where(user: current_user).find(params[:id])
+      @subcategory = Subcategory.find(params[:id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
