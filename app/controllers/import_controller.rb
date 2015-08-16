@@ -25,6 +25,7 @@ class ImportController < ApplicationController
   def parse_dkb_credit_file
     @filecontent = @file.read
     @filecontent.force_encoding('ISO-8859-1')
+    @filecontent = @filecontent.split("\n")[7..-1].join("\n") #Skip first 7 lines of garbage
     @csv = CSV.new(@filecontent, headers: true, col_sep: ";")
     @content = @csv.to_a.map {|row| row.to_hash.merge({md5: (Digest::MD5.hexdigest row.to_s)}) }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
@@ -76,7 +77,8 @@ class ImportController < ApplicationController
 def parse_dkb_giro_file
     @filecontent = @file.read
     @filecontent.force_encoding('ISO-8859-1')
-    @csv = CSV.new(@filecontent, headers: true, col_sep: ";", encoding: 'ISO-8859-1')
+    @filecontent = @filecontent.split("\n")[6..-1].join("\n") #Skip first 6 lines of garbage
+    @csv = CSV.new(@filecontent, headers: true, col_sep: ";")
     @content = @csv.to_a.map {|row| row.to_hash.merge({md5: (Digest::MD5.hexdigest row.to_s)}) }
     tag = "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S")
     import_category = Category.create(name: "Import_"+@format+"_"+Time.now.strftime("%Y-%m-%d-%H%M%S"))
@@ -86,7 +88,8 @@ def parse_dkb_giro_file
       create = true
       category = import_category
       subcategory = nil
-      if row["Auftraggeber / Begunstigter"].include? "VERSICHERUNG"
+      auftraggeber_column = row.keys.select {|k| k if k.class == String and k.include? "Auftraggeber"}[0]
+      if row[auftraggeber_column].include? "VERSICHERUNG"
         category = Category.find_or_create_by(name: "Insurance")
       end 
       if row["Betrag (EUR)"][0] == '-'
@@ -95,13 +98,13 @@ def parse_dkb_giro_file
         create = false
       end
       if row["Verwendungszweck"].include? "TIM AUF DER LANDWEHR"
-        create = false
+        #create = false
       end
       if create
         begin
           @expenses.append(Expense.create(
               amount: row["Betrag (EUR)"].sub(",", ".").sub("-", ""),
-              to: row["Auftraggeber / Begunstigter"],
+              to: row[auftraggeber_column],
               date: Date.strptime(row["Buchungstag"],"%d.%m.%Y"),
               note: row["Verwendungszweck"],
               tag_list: tag,
