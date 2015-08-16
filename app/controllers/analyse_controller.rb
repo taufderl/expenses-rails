@@ -7,7 +7,7 @@ class AnalyseController < ApplicationController
   def overview
     if ['area', 'bar'].include? params[:view]
       @months = Expense.all.map {|e| e.date}.map{ |d| d.strftime("%Y-%m") }.uniq.sort()
-      @categories = Category.to_a
+      @categories = Category.all
       @expenses_series_per_category = []
       @debug = []
       @categories.each do |c|
